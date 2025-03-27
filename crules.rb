@@ -7,11 +7,18 @@ class Crules < Formula
   depends_on "ruby"
 
   def install
-    ENV["GEM_HOME"] = libexec
-    system "gem", "build", "crules.gemspec"
-    system "gem", "install", "--ignore-dependencies", "crules-0.1.1.gem"
-    bin.install libexec/"bin/crules"
-    bin.env_script_all_files(libexec/"bin", GEM_HOME: ENV["GEM_HOME"])
+    # ライブラリファイルのインストール
+    lib.install Dir["lib/*"]
+    
+    # 実行ファイルのインストール
+    bin.install "bin/crules"
+    
+    # 依存関係のインストール
+    system "bundle", "install", "--path", "#{libexec}/vendor/bundle"
+    
+    # 実行ファイルのパスを修正
+    inreplace bin/"crules", "require_relative \"../lib/crules/cli\"", "require \"#{lib}/crules/cli\""
+    inreplace bin/"crules", "require_relative \"../lib/crules/version\"", "require \"#{lib}/crules/version\""
   end
 
   test do
