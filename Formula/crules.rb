@@ -3,8 +3,8 @@ class Crules < Formula
 
   desc "Project rules management CLI tool"
   homepage "https://github.com/tirano-tirano/crules"
-  url "https://github.com/tirano-tirano/crules/archive/refs/tags/v0.1.0.tar.gz"
-  sha256 "bfc714cf6206d71bcf3944f83e8070add0add1ce7cf821c9c4da6b5316b496d1"
+  url "https://github.com/tirano-tirano/crules/archive/refs/tags/v0.1.1.tar.gz"
+  sha256 "99441c35bb8dc8dd322e707ab65b9d0fc29239dcf4bddce068a8d33a4a0d15ff"
   license "MIT"
 
   depends_on "python@3.10"
