@@ -1,0 +1,48 @@
+name: Update Formula
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # 6時間ごとに実行
+  workflow_dispatch:  # 手動実行も可能
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout homebrew-crules
+        uses: actions/checkout@v4
+        with:
+          repository: tirano-tirano/homebrew-crules
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: homebrew-crules
+
+      - name: Get latest release
+        id: get-release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: release } = await github.rest.repos.getLatestRelease({
+              owner: 'tirano-tirano',
+              repo: 'crules'
+            });
+            return release.tag_name;
+
+      - name: Download and hash release
+        run: |
+          cd /tmp
+          curl -L "https://github.com/tirano-tirano/crules/archive/refs/tags/${{ steps.get-release.outputs.result }}.tar.gz" -o crules.tar.gz
+          echo "SHA256=$(shasum -a 256 crules.tar.gz | cut -d' ' -f1)" >> $GITHUB_ENV
+
+      - name: Update formula
+        run: |
+          cd homebrew-crules
+          sed -i "s|url \".*\"|url \"https://github.com/tirano-tirano/crules/archive/refs/tags/${{ steps.get-release.outputs.result }}.tar.gz\"|" Formula/crules.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${{ env.SHA256 }}\"|" Formula/crules.rb
+
+      - name: Commit and push changes
+        run: |
+          cd homebrew-crules
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add Formula/crules.rb
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update formula to ${{ steps.get-release.outputs.result }}" && git push) 
